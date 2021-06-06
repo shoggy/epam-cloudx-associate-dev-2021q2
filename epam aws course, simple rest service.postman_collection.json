@@ -6,30 +6,13 @@
   },
   "item": [
     {
-      "name": "New Request",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{host}}/product",
-          "host": [
-            "{{host}}"
-          ],
-          "path": [
-            "product"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
       "name": "Add new product",
       "event": [
         {
           "listen": "prerequest",
           "script": {
             "exec": [
-              "pm.collectionVariables.set(\"pm_test_product_name\", \"postman product name\");"
+              "pm.variables.set(\"pm_test_product_name\", \"postman product name\");"
             ],
             "type": "text/javascript"
           }
@@ -41,12 +24,17 @@
               "pm.test(\"Status code is 200\", function () {\r",
               "    pm.response.to.have.status(200);\r",
               "});\r",
-              "pm.test(\"Your test name\", function () {\r",
+              "pm.test(\"Response has id and other fields\", function () {\r",
               "    var jsonData = pm.response.json();\r",
-              "    pm.expect(jsonData.name).to.eql(pm.collectionVariables.get('pm_test_product_name'));\r",
+              "    pm.expect(jsonData.name).to.eql(pm.variables.get('pm_test_product_name'));\r",
               "    pm.expect(jsonData.id).not.oneOf([null, undefined]);\r",
-              "    pm.collectionVariables.set('createdProduct', jsonData);\r",
+              "    pm.variables.set('createdProduct', JSON.stringify(jsonData));\r",
               "});\r",
+              "pm.test(\"Try to get created entity\", function() {\r",
+              "    pm.sendRequest(pm.collectionVariables.get('host') + '/product/' + pm.response.json().id, function (err, response) {\r",
+              "        pm.expect(JSON.stringify(response.json()) === pm.variables.get('createdProduct')).to.be.true;\r",
+              "    });\r",
+              "})\r",
               ""
             ],
             "type": "text/javascript"
@@ -58,7 +46,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n    \"name\": \"{{pm_test_product_name}}\"\r\n}",
+          "raw": "{\"name\": \"{{pm_test_product_name}}\"}",
           "options": {
             "raw": {
               "language": "json"
@@ -96,10 +84,10 @@
               "pm.test(\"Status code is 200\", function () {\r",
               "    pm.response.to.have.status(200);\r",
               "});\r",
-              "pm.test(\"Your test name\", function () {\r",
-              "    var expected = pm.collectionVariables.get('createdProduct');\r",
+              "pm.test(\"All list has newly created item\", function () {\r",
+              "    var expected = pm.variables.get('createdProduct');\r",
               "    var jsonData = pm.response.json();\r",
-              "    pm.expect(jsonData.some(e => JSON.stringify(e) === JSON.stringify(expected))).to.be.true;\r",
+              "    pm.expect(jsonData.some(e => JSON.stringify(e) === expected)).to.be.true;\r",
               "});\r",
               ""
             ],
@@ -147,10 +135,6 @@
     {
       "key": "host",
       "value": "http://localhost:8080"
-    },
-    {
-      "key": "pm_test_product_name",
-      "value": "postman test product name"
     }
   ]
 }
