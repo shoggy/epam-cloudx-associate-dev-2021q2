@@ -1,0 +1,140 @@
+{
+  "info": {
+    "_postman_id": "4fecfd3f-ca74-4907-a1fc-6166c18dcadd",
+    "name": "epam aws course, simple rest service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Add new product",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.variables.set(\"pm_test_product_name\", \"postman product name\");"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "pm.test(\"Response has id and other fields\", function () {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.name).to.eql(pm.variables.get('pm_test_product_name'));\r",
+              "    pm.expect(jsonData.id).not.oneOf([null, undefined]);\r",
+              "    pm.variables.set('createdProduct', JSON.stringify(jsonData));\r",
+              "});\r",
+              "pm.test(\"Try to get created entity\", function() {\r",
+              "    pm.sendRequest(pm.collectionVariables.get('host') + '/product/' + pm.response.json().id, function (err, response) {\r",
+              "        pm.expect(JSON.stringify(response.json()) === pm.variables.get('createdProduct')).to.be.true;\r",
+              "    });\r",
+              "})\r",
+              ""
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"{{pm_test_product_name}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{host}}/product",
+          "host": [
+            "{{host}}"
+          ],
+          "path": [
+            "product"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "getAll after addNew",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "pm.test(\"All list has newly created item\", function () {\r",
+              "    var expected = pm.variables.get('createdProduct');\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData.some(e => JSON.stringify(e) === expected)).to.be.true;\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{host}}/product",
+          "host": [
+            "{{host}}"
+          ],
+          "path": [
+            "product"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "host",
+      "value": "http://localhost:8080"
+    }
+  ]
+}
